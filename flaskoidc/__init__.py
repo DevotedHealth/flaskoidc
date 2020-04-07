@@ -1,6 +1,6 @@
 from flask import redirect, Flask, request
 from flask.helpers import get_env, get_debug_flag
-from flask_oidc import OpenIDConnect
+from flask_oidc_ex import OpenIDConnect
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 
@@ -17,12 +17,14 @@ class FlaskOIDC(Flask):
 
         # If accepting token in the request headers
         token = None
-        if 'Authorization' in request.headers and request.headers['Authorization'].startswith('Bearer '):
-            token = request.headers['Authorization'].split(None, 1)[1].strip()
-        if 'access_token' in request.form:
-            token = request.form['access_token']
-        elif 'access_token' in request.args:
-            token = request.args['access_token']
+        if "Authorization" in request.headers and request.headers[
+            "Authorization"
+        ].startswith("Bearer "):
+            token = request.headers["Authorization"].split(None, 1)[1].strip()
+        if "access_token" in request.form:
+            token = request.form["access_token"]
+        elif "access_token" in request.args:
+            token = request.args["access_token"]
 
         if token:
             validity = self.oidc.validate_token(token)
@@ -65,24 +67,26 @@ class FlaskOIDC(Flask):
         # request is authenticated before processing
         self.before_request(self._before_request)
 
-        @self.route('/login')
+        @self.route("/login")
         def login():
-            return redirect('/')
+            return redirect("/")
 
-        @self.route('/logout')
+        @self.route("/logout")
         def logout():
             """
             The logout function that logs user out from Keycloak.
             :return: Redirects to the Keycloak login page
             """
             _oidc.logout()
-            redirect_url = request.url_root.strip('/')
-            keycloak_issuer = _oidc.client_secrets.get('issuer')
-            keycloak_logout_url = '{}/protocol/openid-connect/logout'. \
-                format(keycloak_issuer)
+            redirect_url = request.url_root.strip("/")
+            keycloak_issuer = _oidc.client_secrets.get("issuer")
+            keycloak_logout_url = "{}/protocol/openid-connect/logout".format(
+                keycloak_issuer
+            )
 
-            return redirect('{}?redirect_uri={}'.format(keycloak_logout_url,
-                                                        redirect_url))
+            return redirect(
+                "{}?redirect_uri={}".format(keycloak_logout_url, redirect_url)
+            )
 
     def make_config(self, instance_relative=False):
         """
@@ -93,11 +97,11 @@ class FlaskOIDC(Flask):
         if instance_relative:
             root_path = self.instance_path
         defaults = dict(self.default_config)
-        defaults['ENV'] = get_env()
-        defaults['DEBUG'] = get_debug_flag()
+        defaults["ENV"] = get_env()
+        defaults["DEBUG"] = get_debug_flag()
 
         # Append all the configurations from the base config class.
         for key, value in BaseConfig.__dict__.items():
-            if not key.startswith('__'):
+            if not key.startswith("__"):
                 defaults[key] = value
         return self.config_class(root_path, defaults)
